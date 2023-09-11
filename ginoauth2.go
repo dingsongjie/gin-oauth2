@@ -187,31 +187,37 @@ func ParseTokenContainer(t *oauth2.Token, data map[string]interface{}) (*TokenCo
 	gtype := "client_credentials"
 
 	// realm := data["realm"].(string)
-	exp := data["exp"].(float64)
-	tok := t.AccessToken
-	nbf := data["nbf"].(float64)
-	aud := []string{}
-	for _, item := range data["aud"].([]interface{}) {
-		aud = append(aud, item.(string))
-	}
 	active := data["active"].(bool)
-	if ttype != t.TokenType {
-		return nil, errors.New("Token type mismatch")
-	}
-	if tok != t.AccessToken {
-		return nil, errors.New("Mismatch between verify request and answer")
+	var exp, nbf float64
+	var tok string
+	var aud []string
+	if active {
+		exp = data["exp"].(float64)
+		tok = t.AccessToken
+		nbf = data["nbf"].(float64)
+		aud = []string{}
+		for _, item := range data["aud"].([]interface{}) {
+			aud = append(aud, item.(string))
+		}
+		scope := data["scope"].(string)
+		// scopes := data["scope"].([]interface{})
+		tdata[scope] = scope
+		// for _, scope := range scopes {
+		// 	sscope := scope.(string)
+		// 	sval, ok := data[sscope]
+		// 	if ok {
+		// 		tdata[sscope] = sval
+		// 	}
+		// }
+		if tok != t.AccessToken {
+			return nil, errors.New("Mismatch between verify request and answer")
+		}
 	}
 
-	scope := data["scope"].(string)
-	// scopes := data["scope"].([]interface{})
-	tdata[scope] = scope
-	// for _, scope := range scopes {
-	// 	sscope := scope.(string)
-	// 	sval, ok := data[sscope]
-	// 	if ok {
-	// 		tdata[sscope] = sval
-	// 	}
+	// if ttype != t.TokenType {
+	// 	return nil, errors.New("Token type mismatch")
 	// }
+
 	return &TokenContainer{
 		Token: &oauth2.Token{
 			AccessToken: t.AccessToken,
